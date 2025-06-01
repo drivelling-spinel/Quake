@@ -774,6 +774,9 @@ int Datagram_Init (void)
 	if (COM_CheckParm("-nolan"))
 		return -1;
 
+        if (!COM_CheckParm("+lan"))
+		return -1;
+
 	for (i = 0; i < net_numlandrivers; i++)
 		{
 		csock = net_landrivers[i].Init ();

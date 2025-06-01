@@ -1,0 +1,448 @@
+ARCH=pentium2
+#ARCH=i486
+
+MOUNT_DIR=.
+BASE_CFLAGS=-Dstricmp=strcasecmp -I$(DJDIR)/net/WATT/inc
+RELEASE_CFLAGS=$(BASE_CFLAGS) -g -march=$(ARCH) -O4 -ffast-math -funroll-loops -fomit-frame-pointer -fexpensive-optimizations
+DEBUG_CFLAGS=$(BASE_CFLAGS) -g
+LDFLAGS=-lm -lwatt -s
+BUILDDIR=build
+CFLAGS=$(RELEASE_CFLAGS)
+DO_CC=$(CC) $(CFLAGS) -o $@ -c $<
+DO_AS=$(CC) $(CFLAGS) -x assembler-with-cpp -o $@ -c $<
+
+#
+STUB=c:\freedos\bin\cwsdstub.exe
+UPXOPT=-9
+
+
+#############################################################################
+# SETUP AND BUILD
+#############################################################################
+TARGET_NAME=dosquake
+TARGET_DIR=$(BUILDDIR)\bin
+TARGET=$(TARGET_DIR)\$(TARGET_NAME).exe
+
+all: targets
+
+targets: $(TARGET)
+ifneq ($(wildcard $(STUB)),)
+	exe2coff $(TARGET)
+	del $(TARGET)
+	copy /B $(STUB) + $(TARGET_DIR)\$(TARGET_NAME) $(TARGET)
+	del $(TARGET_DIR)\$(TARGET_NAME)
+endif
+ifneq ($(wildcard $(addsuffix /upx.exe,$(subst ;, ,$(PATH)))),)
+	upx $(UPXOPT) $(TARGET)
+else
+ifneq ($(wildcard $(addsuffix /djp.exe,$(subst ;, ,$(PATH)))),)
+	djp $(TARGET)
+endif
+endif
+
+
+clean:
+	del $(BUILDDIR)\dosquake\*.o
+	del $(TARGET_DIR)\$(TARGET_NAME)
+	del $(TARGET)
+
+
+#############################################################################
+# Quake for DOS
+#############################################################################
+
+dosquake_OBJS = \
+	$(BUILDDIR)/dosquake/cl_demo.o \
+	$(BUILDDIR)/dosquake/cl_input.o \
+	$(BUILDDIR)/dosquake/cl_main.o \
+	$(BUILDDIR)/dosquake/cl_parse.o \
+	$(BUILDDIR)/dosquake/cl_tent.o \
+	$(BUILDDIR)/dosquake/chase.o \
+	$(BUILDDIR)/dosquake/cmd.o \
+	$(BUILDDIR)/dosquake/common.o \
+	$(BUILDDIR)/dosquake/console.o \
+	$(BUILDDIR)/dosquake/crc.o \
+	$(BUILDDIR)/dosquake/cvar.o \
+	$(BUILDDIR)/dosquake/draw.o \
+	$(BUILDDIR)/dosquake/d_edge.o \
+	$(BUILDDIR)/dosquake/d_fill.o \
+	$(BUILDDIR)/dosquake/d_init.o \
+	$(BUILDDIR)/dosquake/d_modech.o \
+	$(BUILDDIR)/dosquake/d_part.o \
+	$(BUILDDIR)/dosquake/d_polyse.o \
+	$(BUILDDIR)/dosquake/d_scan.o \
+	$(BUILDDIR)/dosquake/d_sky.o \
+	$(BUILDDIR)/dosquake/d_sprite.o \
+	$(BUILDDIR)/dosquake/d_surf.o \
+	$(BUILDDIR)/dosquake/d_vars.o \
+	$(BUILDDIR)/dosquake/d_zpoint.o \
+	$(BUILDDIR)/dosquake/host.o \
+	$(BUILDDIR)/dosquake/host_cmd.o \
+	$(BUILDDIR)/dosquake/keys.o \
+	$(BUILDDIR)/dosquake/menu.o \
+	$(BUILDDIR)/dosquake/mathlib.o \
+	$(BUILDDIR)/dosquake/model.o \
+	$(BUILDDIR)/dosquake/net_dgrm.o \
+	$(BUILDDIR)/dosquake/net_loop.o \
+	$(BUILDDIR)/dosquake/net_main.o \
+	$(BUILDDIR)/dosquake/net_vcr.o \
+	$(BUILDDIR)/dosquake/net_udp.o \
+	$(BUILDDIR)/dosquake/net_bsd.o \
+	$(BUILDDIR)/dosquake/nonintel.o \
+	$(BUILDDIR)/dosquake/pr_cmds.o \
+	$(BUILDDIR)/dosquake/pr_edict.o \
+	$(BUILDDIR)/dosquake/pr_exec.o \
+	$(BUILDDIR)/dosquake/r_aclip.o \
+	$(BUILDDIR)/dosquake/r_alias.o \
+	$(BUILDDIR)/dosquake/r_bsp.o \
+	$(BUILDDIR)/dosquake/r_light.o \
+	$(BUILDDIR)/dosquake/r_draw.o \
+	$(BUILDDIR)/dosquake/r_efrag.o \
+	$(BUILDDIR)/dosquake/r_edge.o \
+	$(BUILDDIR)/dosquake/r_misc.o \
+	$(BUILDDIR)/dosquake/r_main.o \
+	$(BUILDDIR)/dosquake/r_sky.o \
+	$(BUILDDIR)/dosquake/r_sprite.o \
+	$(BUILDDIR)/dosquake/r_surf.o \
+	$(BUILDDIR)/dosquake/r_part.o \
+	$(BUILDDIR)/dosquake/r_vars.o \
+	$(BUILDDIR)/dosquake/screen.o \
+	$(BUILDDIR)/dosquake/sbar.o \
+	$(BUILDDIR)/dosquake/sv_main.o \
+	$(BUILDDIR)/dosquake/sv_phys.o \
+	$(BUILDDIR)/dosquake/sv_move.o \
+	$(BUILDDIR)/dosquake/sv_user.o \
+	$(BUILDDIR)/dosquake/zone.o	\
+	$(BUILDDIR)/dosquake/view.o	\
+	$(BUILDDIR)/dosquake/wad.o \
+	$(BUILDDIR)/dosquake/world.o \
+        $(BUILDDIR)/dosquake/cd_audio.o \
+        $(BUILDDIR)/dosquake/sys_dos.o \
+        $(BUILDDIR)/dosquake/in_dos.o \
+        $(BUILDDIR)/dosquake/dos_v2.o \
+        $(BUILDDIR)/dosquake/vid_dos.o \
+        $(BUILDDIR)/dosquake/vregset.o \
+        $(BUILDDIR)/dosquake/vid_vga.o \
+        $(BUILDDIR)/dosquake/vid_ext.o \
+	$(BUILDDIR)/dosquake/snd_dma.o \
+	$(BUILDDIR)/dosquake/snd_mem.o \
+	$(BUILDDIR)/dosquake/snd_mix.o \
+	$(BUILDDIR)/dosquake/snd_gus.o \
+        $(BUILDDIR)/dosquake/snd_dos.o \
+	\
+	$(BUILDDIR)/dosquake/d_copy.o \
+	$(BUILDDIR)/dosquake/d_draw.o \
+	$(BUILDDIR)/dosquake/d_draw16.o \
+	$(BUILDDIR)/dosquake/d_parta.o \
+	$(BUILDDIR)/dosquake/d_polysa.o \
+	$(BUILDDIR)/dosquake/d_scana.o \
+	$(BUILDDIR)/dosquake/d_spr8.o \
+	$(BUILDDIR)/dosquake/d_varsa.o \
+	$(BUILDDIR)/dosquake/math.o \
+	$(BUILDDIR)/dosquake/r_aliasa.o \
+	$(BUILDDIR)/dosquake/r_drawa.o \
+	$(BUILDDIR)/dosquake/r_edgea.o \
+	$(BUILDDIR)/dosquake/r_varsa.o \
+	$(BUILDDIR)/dosquake/surf16.o \
+	$(BUILDDIR)/dosquake/surf8.o \
+	$(BUILDDIR)/dosquake/worlda.o \
+	$(BUILDDIR)/dosquake/r_aclipa.o \
+	$(BUILDDIR)/dosquake/snd_mixa.o \
+	$(BUILDDIR)/dosquake/sys_dosa.o
+
+$(BUILDDIR)\bin\dosquake.exe : $(dosquake_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(dosquake_OBJS) $(LDFLAGS)
+
+####
+
+$(BUILDDIR)/dosquake/cl_demo.o :  $(MOUNT_DIR)/cl_demo.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/cl_input.o : $(MOUNT_DIR)/cl_input.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/cl_main.o :  $(MOUNT_DIR)/cl_main.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/cl_parse.o : $(MOUNT_DIR)/cl_parse.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/cl_tent.o :  $(MOUNT_DIR)/cl_tent.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/chase.o :    $(MOUNT_DIR)/chase.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/cmd.o :      $(MOUNT_DIR)/cmd.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/common.o :   $(MOUNT_DIR)/common.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/console.o :  $(MOUNT_DIR)/console.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/crc.o :      $(MOUNT_DIR)/crc.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/cvar.o :     $(MOUNT_DIR)/cvar.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/draw.o :     $(MOUNT_DIR)/draw.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_edge.o :   $(MOUNT_DIR)/d_edge.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_fill.o :   $(MOUNT_DIR)/d_fill.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_init.o :   $(MOUNT_DIR)/d_init.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_modech.o : $(MOUNT_DIR)/d_modech.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_part.o :   $(MOUNT_DIR)/d_part.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_polyse.o : $(MOUNT_DIR)/d_polyse.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_scan.o :   $(MOUNT_DIR)/d_scan.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_sky.o :    $(MOUNT_DIR)/d_sky.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_sprite.o : $(MOUNT_DIR)/d_sprite.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_surf.o :   $(MOUNT_DIR)/d_surf.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_vars.o :   $(MOUNT_DIR)/d_vars.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/d_zpoint.o : $(MOUNT_DIR)/d_zpoint.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/host.o :     $(MOUNT_DIR)/host.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/host_cmd.o : $(MOUNT_DIR)/host_cmd.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/keys.o :     $(MOUNT_DIR)/keys.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/menu.o :     $(MOUNT_DIR)/menu.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/mathlib.o :  $(MOUNT_DIR)/mathlib.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/model.o :    $(MOUNT_DIR)/model.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/net_dgrm.o : $(MOUNT_DIR)/net_dgrm.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/net_loop.o : $(MOUNT_DIR)/net_loop.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/net_main.o : $(MOUNT_DIR)/net_main.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/net_vcr.o :  $(MOUNT_DIR)/net_vcr.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/net_udp.o :  $(MOUNT_DIR)/net_udp.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/net_bsd.o :  $(MOUNT_DIR)/net_bsd.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/nonintel.o : $(MOUNT_DIR)/nonintel.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/pr_cmds.o :  $(MOUNT_DIR)/pr_cmds.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/pr_edict.o : $(MOUNT_DIR)/pr_edict.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/pr_exec.o :  $(MOUNT_DIR)/pr_exec.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_aclip.o :  $(MOUNT_DIR)/r_aclip.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_alias.o :  $(MOUNT_DIR)/r_alias.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_bsp.o :    $(MOUNT_DIR)/r_bsp.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_light.o :  $(MOUNT_DIR)/r_light.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_draw.o :   $(MOUNT_DIR)/r_draw.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_efrag.o :  $(MOUNT_DIR)/r_efrag.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_edge.o :   $(MOUNT_DIR)/r_edge.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_misc.o :   $(MOUNT_DIR)/r_misc.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_main.o :   $(MOUNT_DIR)/r_main.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_sky.o :    $(MOUNT_DIR)/r_sky.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_sprite.o : $(MOUNT_DIR)/r_sprite.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_surf.o :   $(MOUNT_DIR)/r_surf.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_part.o :   $(MOUNT_DIR)/r_part.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/r_vars.o :   $(MOUNT_DIR)/r_vars.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/screen.o :   $(MOUNT_DIR)/screen.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/sbar.o :     $(MOUNT_DIR)/sbar.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/sv_main.o :  $(MOUNT_DIR)/sv_main.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/sv_phys.o :  $(MOUNT_DIR)/sv_phys.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/sv_move.o :  $(MOUNT_DIR)/sv_move.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/sv_user.o :  $(MOUNT_DIR)/sv_user.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/zone.o	:   $(MOUNT_DIR)/zone.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/view.o	:   $(MOUNT_DIR)/view.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/wad.o :      $(MOUNT_DIR)/wad.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/world.o :    $(MOUNT_DIR)/world.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/cd_audio.o : $(MOUNT_DIR)/cd_audio.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/sys_dos.o :$(MOUNT_DIR)/sys_dos.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/in_dos.o :$(MOUNT_DIR)/in_dos.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/dos_v2.o :$(MOUNT_DIR)/dos_v2.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/vid_dos.o : $(MOUNT_DIR)/vid_dos.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/vregset.o : $(MOUNT_DIR)/vregset.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/vid_vga.o : $(MOUNT_DIR)/vid_vga.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/vid_ext.o : $(MOUNT_DIR)/vid_ext.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/snd_dma.o :  $(MOUNT_DIR)/snd_dma.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/snd_mem.o :  $(MOUNT_DIR)/snd_mem.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/snd_mix.o :  $(MOUNT_DIR)/snd_mix.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/snd_dos.o :$(MOUNT_DIR)/snd_dos.c
+	$(DO_CC)
+
+$(BUILDDIR)/dosquake/snd_gus.o :$(MOUNT_DIR)/snd_gus.c
+	$(DO_CC)
+
+#####
+
+$(BUILDDIR)/dosquake/d_copy.o :   $(MOUNT_DIR)/d_copy.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/d_draw.o :   $(MOUNT_DIR)/d_draw.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/d_draw16.o : $(MOUNT_DIR)/d_draw16.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/d_parta.o :  $(MOUNT_DIR)/d_parta.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/d_polysa.o : $(MOUNT_DIR)/d_polysa.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/d_scana.o :  $(MOUNT_DIR)/d_scana.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/d_spr8.o :   $(MOUNT_DIR)/d_spr8.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/d_varsa.o :  $(MOUNT_DIR)/d_varsa.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/math.o :     $(MOUNT_DIR)/math.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/r_aliasa.o : $(MOUNT_DIR)/r_aliasa.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/r_drawa.o :  $(MOUNT_DIR)/r_drawa.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/r_edgea.o :  $(MOUNT_DIR)/r_edgea.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/r_varsa.o :  $(MOUNT_DIR)/r_varsa.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/surf16.o :   $(MOUNT_DIR)/surf16.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/surf8.o :    $(MOUNT_DIR)/surf8.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/worlda.o :   $(MOUNT_DIR)/worlda.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/r_aclipa.o : $(MOUNT_DIR)/r_aclipa.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/snd_mixa.o : $(MOUNT_DIR)/snd_mixa.s
+	$(DO_AS)
+
+$(BUILDDIR)/dosquake/sys_dosa.o : $(MOUNT_DIR)/sys_dosa.s
+	$(DO_AS)
+
+
