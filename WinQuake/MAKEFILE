@@ -3,12 +3,14 @@ ARCH=pentium2
 
 MOUNT_DIR=.
 BASE_CFLAGS=-Dstricmp=strcasecmp -I$(DJDIR)/net/WATT/inc
-RELEASE_CFLAGS=$(BASE_CFLAGS) -g -march=$(ARCH) -O4 -ffast-math -funroll-loops -fomit-frame-pointer -fexpensive-optimizations
+RELEASE_CFLAGS=$(BASE_CFLAGS) -g -march=$(ARCH) -ffast-math -O4 -funroll-loops -fomit-frame-pointer -fexpensive-optimizations
+CONSERVATIVE_CFLAGS=$(BASE_CFLAGS) -g -march=$(ARCH) -ffast-math -funroll-loops -fomit-frame-pointer 
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g
 LDFLAGS=-lm -lwatt -s
 BUILDDIR=build
 CFLAGS=$(RELEASE_CFLAGS)
 DO_CC=$(CC) $(CFLAGS) -o $@ -c $<
+DO_CC_CONS=$(CC) $(CONSERVATIVE_CFLAGS) -o $@ -c $<
 DO_AS=$(CC) $(CFLAGS) -x assembler-with-cpp -o $@ -c $<
 
 #
@@ -348,7 +350,7 @@ $(BUILDDIR)/dosquake/world.o :    $(MOUNT_DIR)/world.c
 	$(DO_CC)
 
 $(BUILDDIR)/dosquake/cd_audio.o : $(MOUNT_DIR)/cd_audio.c
-	$(DO_CC)
+	$(DO_CC_CONS)
 
 $(BUILDDIR)/dosquake/sys_dos.o :$(MOUNT_DIR)/sys_dos.c
 	$(DO_CC)
@@ -357,7 +359,7 @@ $(BUILDDIR)/dosquake/in_dos.o :$(MOUNT_DIR)/in_dos.c
 	$(DO_CC)
 
 $(BUILDDIR)/dosquake/dos_v2.o :$(MOUNT_DIR)/dos_v2.c
-	$(DO_CC)
+	$(DO_CC_CONS)
 
 $(BUILDDIR)/dosquake/vid_dos.o : $(MOUNT_DIR)/vid_dos.c
 	$(DO_CC)
