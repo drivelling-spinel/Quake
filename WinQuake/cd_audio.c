@@ -809,8 +809,8 @@ int CDAudio_Init(void)
 	if (COM_CheckParm("-nocdaudio"))
 		return -1;
 
-        if (!COM_CheckParm("+cdaudio"))
-                return -1;
+	if (!COM_CheckParm("+cdaudio"))
+		return -1;
 
 	if (COM_CheckParm("-cdmediacheck"))
 		mediaCheck = true;

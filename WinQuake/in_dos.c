@@ -441,11 +441,10 @@ qboolean IN_ReadJoystick (void)
 WaitJoyButton
 =============
 */
-qboolean WaitJoyButton (void) 
+static qboolean WaitJoyButton (void) 
 { 
-	int             oldbuttons, buttons; 
+	int             buttons; 
  
-	oldbuttons = 0; 
 	do 
 	{
 		key_count = -1;
@@ -458,12 +457,7 @@ qboolean WaitJoyButton (void)
 		}
 		key_lastpress = 0;
 		SCR_UpdateScreen ();
-		buttons =  ((dos_inportb(0x201) >> 4)&1)^1; 
-		if (buttons != oldbuttons) 
-		{ 
-			oldbuttons = buttons; 
-			continue; 
-		}
+		buttons = ((dos_inportb(0x201) >> 4)^0xf); 
 	} while ( !buttons); 
  
 	do 
@@ -478,12 +472,7 @@ qboolean WaitJoyButton (void)
 		}
 		key_lastpress = 0;
 		SCR_UpdateScreen ();
-		buttons =  ((dos_inportb(0x201) >> 4)&1)^1; 
-		if (buttons != oldbuttons) 
-		{ 
-			oldbuttons = buttons; 
-			continue; 
-		} 
+		buttons = ((dos_inportb(0x201) >> 4)^0xf); 
 	} while ( buttons); 
  
 	return true; 
@@ -500,36 +489,39 @@ void IN_StartupJoystick (void)
 { 
 	int     centerx, centery; 
  
- 	Con_Printf ("\n");
+	Con_Printf ("\n");
 
 	joy_avail = false; 
 	if ( COM_CheckParm ("-nojoy") ) 
 		return; 
- 
+
+	if ( !COM_CheckParm ("+joy") ) 
+		return; 
+
 	if (!IN_ReadJoystick ()) 
 	{ 
 		joy_avail = false; 
-		Con_Printf ("joystick not found\n"); 
+		Con_Printf ("joystick not found\n");
 		return; 
 	} 
 
 	Con_Printf ("joystick found\n"); 
  
-	Con_Printf ("CENTER the joystick\nand press button 1 (ESC to skip):\n"); 
+	Con_Printf ("CENTER the joystick\nand press a button (ESC to skip):\n"); 
 	if (!WaitJoyButton ()) 
 		return; 
 	IN_ReadJoystick (); 
 	centerx = joystickx; 
 	centery = joysticky; 
  
-	Con_Printf ("Push the joystick to the UPPER LEFT\nand press button 1 (ESC to skip):\n"); 
+	Con_Printf ("Push the joystick to the UPPER LEFT\nand press a button (ESC to skip):\n"); 
 	if (!WaitJoyButton ()) 
 		return; 
 	IN_ReadJoystick (); 
 	joyxl = (centerx + joystickx)/2; 
 	joyyl = (centerx + joysticky)/2; 
  
-	Con_Printf ("Push the joystick to the LOWER RIGHT\nand press button 1 (ESC to skip):\n"); 
+	Con_Printf ("Push the joystick to the LOWER RIGHT\nand press a button (ESC to skip):\n"); 
 	if (!WaitJoyButton ()) 
 		return; 
 	IN_ReadJoystick (); 
@@ -537,9 +529,9 @@ void IN_StartupJoystick (void)
 	joyyh = (centery + joysticky)/2; 
 
 	joy_avail = true; 
-	Con_Printf ("joystick configured.\n"); 
+	Con_Printf ("joystick configured.\n");
 
- 	Con_Printf ("\n");
+	Con_Printf ("\n");
 } 
  
  

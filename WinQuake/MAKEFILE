@@ -2,7 +2,9 @@ ARCH=pentium2
 #ARCH=i486
 
 MOUNT_DIR=.
-BASE_CFLAGS=-Dstricmp=strcasecmp -I$(DJDIR)/net/WATT/inc
+#OPT_CFLAGS=-DUSE_UCLOCK_TIME -DUSE_UNIX_SBRK
+OPT_CFLAGS=-DUSE_UCLOCK_TIME -DUSE_UNIX_SBRK
+BASE_CFLAGS=-Dstricmp=strcasecmp -I$(DJDIR)/net/WATT/inc $(OPT_CFLAGS)
 RELEASE_CFLAGS=$(BASE_CFLAGS) -g -march=$(ARCH) -ffast-math -O4 -funroll-loops -fomit-frame-pointer -fexpensive-optimizations
 CONSERVATIVE_CFLAGS=$(BASE_CFLAGS) -g -march=$(ARCH) -ffast-math -funroll-loops -fomit-frame-pointer 
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g
@@ -14,9 +16,8 @@ DO_CC_CONS=$(CC) $(CONSERVATIVE_CFLAGS) -o $@ -c $<
 DO_AS=$(CC) $(CFLAGS) -x assembler-with-cpp -o $@ -c $<
 
 #
-STUB=c:\freedos\bin\cwsdstub.exe
+STUB=c:\wherewhe\rthestub\isfound\cwsdstub.exe
 UPXOPT=-9
-
 
 #############################################################################
 # SETUP AND BUILD
@@ -31,7 +32,7 @@ targets: $(TARGET)
 ifneq ($(wildcard $(STUB)),)
 	exe2coff $(TARGET)
 	del $(TARGET)
-	copy /B $(STUB) + $(TARGET_DIR)\$(TARGET_NAME) $(TARGET)
+	copy /b $(STUB) + $(TARGET_DIR)\$(TARGET_NAME) $(TARGET)
 	del $(TARGET_DIR)\$(TARGET_NAME)
 endif
 ifneq ($(wildcard $(addsuffix /upx.exe,$(subst ;, ,$(PATH)))),)

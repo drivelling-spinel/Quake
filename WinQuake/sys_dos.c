@@ -35,11 +35,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/nearptr.h>
 #include <conio.h>
 
+#ifdef USE_UNIX_SBRK
+#include <crt0.h>       /* for sbrk unix flag below */
+#endif
+
 #include "quakedef.h"
 #include "dosisms.h"
 
 #define MINIMUM_WIN_MEMORY			0x800000
 #define MINIMUM_WIN_MEMORY_LEVELPAK	(MINIMUM_WIN_MEMORY + 0x100000)
+
+/* 2000-07-16, DOSQuake/DJGPP mem detection fix by
+ * Norberto Alfredo Bensa
+ */
+#ifdef USE_UNIX_SBRK
+int                   _crt0_startup_flags = _CRT0_FLAG_UNIX_SBRK;
+#endif
 
 int			end_of_memory;
 qboolean	lockmem, lockunlockmem, unlockmem;
@@ -52,12 +63,20 @@ static unsigned char	keybuf[KEYBUF_SIZE];
 static int				keybuf_head=0;
 static int				keybuf_tail=0;
 
-static quakeparms_t	quakeparms;
-int					sys_checksum;
+/* 2000-07-28, DOSQuake time running too fast fix
+ * by Norberto Alfredo Bensa. set USE_UCLOCK_TIME
+ * to 0 if you want to use the old original code.
+ * FIXME: uclock() isn't an ANSI C function..
+ */
+
+#ifndef USE_UCLOCK_TIME
 static double		curtime = 0.0;
 static double		lastcurtime = 0.0;
 static double		oldtime = 0.0;
+#endif	/* ! USE_UCLOCK_TIME */
 
+static quakeparms_t	quakeparms;
+int					sys_checksum;
 qboolean         isDedicated;
 
 static int			minmem;
@@ -455,9 +474,11 @@ void Sys_Init(void)
 
 	Sys_SetFPCW ();
 
+#ifndef USE_UCLOCK_TIME
     dos_outportb(0x43, 0x34); // set system timer to mode 2
     dos_outportb(0x40, 0);    // for the Sys_FloatTime() function
     dos_outportb(0x40, 0);
+#endif	/* ! USE_UCLOCK_TIME */
 
 	Sys_InitFloatTime ();
 
@@ -688,6 +709,10 @@ Sys_FloatTime
 */
 double Sys_FloatTime (void)
 {
+#ifdef USE_UCLOCK_TIME
+    return (double) uclock() / (double) UCLOCKS_PER_SEC;
+#else
+
     int				r;
     unsigned		t, tick;
 	double			ft, time;
@@ -742,6 +767,7 @@ double Sys_FloatTime (void)
 	Sys_PopFPCW ();
 
     return curtime;
+#endif  /* ! USE_UCLOCK_TIME */
 }
 
 
@@ -752,6 +778,7 @@ Sys_InitFloatTime
 */
 void Sys_InitFloatTime (void)
 {
+#ifndef USE_UCLOCK_TIME
 	int		j;
 
 	Sys_FloatTime ();
@@ -769,6 +796,7 @@ void Sys_InitFloatTime (void)
 		curtime = 0.0;
 	}
 	lastcurtime = curtime;
+#endif  /* ! USE_UCLOCK_TIME */
 }
 
 
