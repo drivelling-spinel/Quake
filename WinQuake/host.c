@@ -890,7 +890,7 @@ void Host_Init (quakeparms_t *parms)
 		Draw_Init ();
 		SCR_Init ();
 		R_Init ();
-#ifdef _WIN32
+#ifndef _WIN32
 	// on Win32, sound initialization has to come before video initialization, so we
 	// can put up a popup if the sound hardware is in use
 		S_Init ();
