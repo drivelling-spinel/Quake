@@ -359,6 +359,7 @@ void R_ViewChanged (vrect_t *pvrect, int lineadj, float aspect)
 {
 	int		i;
 	float	res_scale;
+        float   dev_aspect = 0;
 
 	r_viewchanged = true;
 
@@ -388,7 +389,16 @@ void R_ViewChanged (vrect_t *pvrect, int lineadj, float aspect)
 	r_refdef.aliasvrectbottom = r_refdef.aliasvrect.y +
 			r_refdef.aliasvrect.height;
 
-	pixelAspect = aspect;
+        if (aspect < 0)
+        {
+                pixelAspect = 1;
+                dev_aspect = -aspect;
+        }
+        else
+        {
+                pixelAspect = aspect;
+                dev_aspect = 1e5;
+        }
 	xOrigin = r_refdef.xOrigin;
 	yOrigin = r_refdef.yOrigin;
 	
@@ -399,6 +409,11 @@ void R_ViewChanged (vrect_t *pvrect, int lineadj, float aspect)
 // proper 320*200 pixelAspect = 0.8333333
 
 	verticalFieldOfView = r_refdef.horizontalFieldOfView / screenAspect;
+
+        if (dev_aspect < 0.7)
+        {
+                r_refdef.horizontalFieldOfView = verticalFieldOfView / dev_aspect;
+        }
 
 // values for perspective projection
 // if math were exact, the values would range from 0.5 to to range+0.5
