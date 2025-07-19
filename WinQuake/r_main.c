@@ -359,7 +359,7 @@ void R_ViewChanged (vrect_t *pvrect, int lineadj, float aspect)
 {
 	int		i;
 	float	res_scale;
-        float   dev_aspect = 0;
+        float   dev_aspect;
 
 	r_viewchanged = true;
 

@@ -394,7 +394,7 @@ void VID_InitExtra (void)
 				vesa_modes[nummodes].enddirectrect = VGA_EndDirectRect;
 
 				phys_mem_info.address = (int)modeinfo.pptr;
-				phys_mem_info.size = 0x580000;
+				phys_mem_info.size = 0x5f0000 > totalvidmem ? totalvidmem : 0x5f0000;
 
 				if (__dpmi_physical_address_mapping(&phys_mem_info))
 					goto NextMode;

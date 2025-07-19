@@ -205,6 +205,12 @@ void S_Init (void)
 
 	S_Startup ();
 
+        if(!sound_started)
+        {
+                snd_initialized = false; 
+                return;
+        }
+
 	SND_InitScaletable ();
 
 	known_sfx = Hunk_AllocName (MAX_SFX*sizeof(sfx_t), "sfx_t");

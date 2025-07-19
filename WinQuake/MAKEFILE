@@ -354,10 +354,10 @@ $(BUILDDIR)/dosquake/cd_audio.o : $(MOUNT_DIR)/cd_audio.c
 	$(DO_CC_CONS)
 
 $(BUILDDIR)/dosquake/sys_dos.o :$(MOUNT_DIR)/sys_dos.c
-	$(DO_CC)
+	$(DO_CC_CONS)
 
 $(BUILDDIR)/dosquake/in_dos.o :$(MOUNT_DIR)/in_dos.c
-	$(DO_CC)
+	$(DO_CC_CONS)
 
 $(BUILDDIR)/dosquake/dos_v2.o :$(MOUNT_DIR)/dos_v2.c
 	$(DO_CC_CONS)

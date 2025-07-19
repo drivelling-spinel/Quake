@@ -457,7 +457,7 @@ static qboolean WaitJoyButton (void)
 		}
 		key_lastpress = 0;
 		SCR_UpdateScreen ();
-		buttons = ((dos_inportb(0x201) >> 4)^0xf); 
+                buttons = (dos_inportb(0x201) >> 4)^0xf; 
 	} while ( !buttons); 
  
 	do 
@@ -472,7 +472,7 @@ static qboolean WaitJoyButton (void)
 		}
 		key_lastpress = 0;
 		SCR_UpdateScreen ();
-		buttons = ((dos_inportb(0x201) >> 4)^0xf); 
+                buttons = (dos_inportb(0x201) >> 4)^0xf; 
 	} while ( buttons); 
  
 	return true; 
