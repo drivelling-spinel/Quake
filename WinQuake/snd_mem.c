@@ -38,6 +38,9 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 	int		i;
 	int		sample, samplefrac, fracstep;
 	sfxcache_t	*sc;
+	int		incount;
+	int		inloop;
+	float		fstep, ffrac;
 	
 	sc = Cache_Check (&sfx->cache);
 	if (!sc)
@@ -46,7 +49,9 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 	stepscale = (float)inrate / shm->speed;	// this is usually 0.5, 1, or 2
 
 	outcount = sc->length / stepscale;
+	incount = sc->length;
 	sc->length = outcount;
+	inloop = sc->loopstart;
 	if (sc->loopstart != -1)
 		sc->loopstart = sc->loopstart / stepscale;
 
@@ -54,7 +59,7 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 	if (loadas8bit.value)
 		sc->width = 1;
 	else
-		sc->width = inwidth;
+		sc->width = shm->samplebits / 8;
 	sc->stereo = 0;
 
 // resample / decimate to the current source rate
@@ -71,18 +76,60 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 // general case
 		samplefrac = 0;
 		fracstep = stepscale*256;
+#ifdef RESAMPLE_INTERP
+		//FIXME: hard to imagine anyone gives us a zero-length or 1-sample length stream
+		if (inloop < 0)
+			fstep = (float)(incount - 1) / (outcount - 1);
+		else
+			fstep = (float)(incount) / (outcount + 1);
+#endif
 		for (i=0 ; i<outcount ; i++)
 		{
+			int nextsample;
+			float interpsample;
+#ifndef RESAMPLE_INTERP
 			srcsample = samplefrac >> 8;
-			samplefrac += fracstep;
 			if (inwidth == 2)
 				sample = LittleShort ( ((short *)data)[srcsample] );
 			else
 				sample = (int)( (unsigned char)(data[srcsample]) - 128) << 8;
+#else
+			srcsample = (int) (fstep * i);
+			if (srcsample >= incount)
+				srcsample = incount - 1;
+			if (inwidth == 2)
+				sample = LittleShort ( ((short *)data)[srcsample] );
+			else
+				sample = (int)( (unsigned char)(data[srcsample]) - 128) << 8;
+			nextsample = srcsample + 1;
+			if (nextsample >= incount && inloop >= 0 && sc->loopstart < i)
+			{
+				if (sc->width == 2)
+					interpsample = ((short *)sc->data)[sc->loopstart];
+				else
+					interpsample = ((int)(((signed char *)sc->data)[sc->loopstart])) << 8;
+			}
+			else
+			{
+				if (nextsample >= incount)
+					if(inloop < 0)
+						nextsample = srcsample;
+					else
+						nextsample = inloop;
+				if (inwidth == 2)
+					interpsample = LittleShort ( ((short *)data)[nextsample] );
+				else
+					interpsample = (int)( (unsigned char)(data[nextsample]) - 128) << 8;
+			}
+			ffrac = fstep * i - (int)(fstep * i);
+			interpsample = ffrac * interpsample + (1 - ffrac) * sample;
+			sample = interpsample;
+#endif
 			if (sc->width == 2)
 				((short *)sc->data)[i] = sample;
 			else
 				((signed char *)sc->data)[i] = sample >> 8;
+			samplefrac += fracstep;
 		}
 	}
 }
@@ -134,7 +181,7 @@ sfxcache_t *S_LoadSound (sfx_t *s)
 	stepscale = (float)info.rate / shm->speed;	
 	len = info.samples / stepscale;
 
-	len = len * info.width * info.channels;
+	len = len * shm->samplebits / 8 * info.channels;
 
 	sc = Cache_Alloc ( &s->cache, len + sizeof(sfxcache_t), s->name);
 	if (!sc)

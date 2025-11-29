@@ -3,7 +3,7 @@ ARCH=pentium2
 
 MOUNT_DIR=.
 #OPT_CFLAGS=-DUSE_UCLOCK_TIME -DUSE_UNIX_SBRK
-OPT_CFLAGS=-DUSE_UCLOCK_TIME -DUSE_UNIX_SBRK
+OPT_CFLAGS=-DUSE_UCLOCK_TIME -DUSE_UNIX_SBRK -DSAMPLE_FIX -DRESAMPLE_INTERP
 BASE_CFLAGS=-Dstricmp=strcasecmp -I$(DJDIR)/net/WATT/inc $(OPT_CFLAGS)
 RELEASE_CFLAGS=$(BASE_CFLAGS) -g -march=$(ARCH) -ffast-math -O4 -funroll-loops -fomit-frame-pointer -fexpensive-optimizations
 CONSERVATIVE_CFLAGS=$(BASE_CFLAGS) -g -march=$(ARCH) -ffast-math -funroll-loops -fomit-frame-pointer 

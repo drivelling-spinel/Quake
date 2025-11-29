@@ -1,4 +1,5 @@
 /*
+
 Copyright (C) 1996-1997 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
@@ -255,8 +256,16 @@ CHANNEL MIXING
 ===============================================================================
 */
 
-void SND_PaintChannelFrom8 (channel_t *ch, sfxcache_t *sc, int endtime);
-void SND_PaintChannelFrom16 (channel_t *ch, sfxcache_t *sc, int endtime);
+void SND_PaintChannelFrom8 (channel_t *ch, sfxcache_t *sc, int endtime
+#ifdef SAMPLE_FIX
+                                                                      , int offset
+#endif
+                                                                                  );
+void SND_PaintChannelFrom16 (channel_t *ch, sfxcache_t *sc, int endtime
+#ifdef SAMPLE_FIX
+                                                                       , int offset
+#endif
+                                                                                   );
 
 void S_PaintChannels(int endtime)
 {
@@ -300,9 +309,17 @@ void S_PaintChannels(int endtime)
 				if (count > 0)
 				{	
 					if (sc->width == 1)
-						SND_PaintChannelFrom8(ch, sc, count);
+						SND_PaintChannelFrom8(ch, sc, count
+#ifdef SAMPLE_FIX
+						                                   , ltime - paintedtime
+#endif
+						                                                        );
 					else
-						SND_PaintChannelFrom16(ch, sc, count);
+						SND_PaintChannelFrom16(ch, sc, count
+#ifdef SAMPLE_FIX
+						                                   , ltime - paintedtime
+#endif
+						                                                        );
 	
 					ltime += count;
 				}
@@ -341,14 +358,19 @@ void SND_InitScaletable (void)
 }
 
 
-#if	!id386
+#if	!id386 || defined(SAMPLE_FIX)
 
-void SND_PaintChannelFrom8 (channel_t *ch, sfxcache_t *sc, int count)
+void SND_PaintChannelFrom8 (channel_t *ch, sfxcache_t *sc, int count
+#ifdef SAMPLE_FIX
+                                                                    , int offset
+#endif
+                                                                                )
 {
-	int 	data;
-	int		*lscale, *rscale;
-	unsigned char *sfx;
-	int		i;
+	int			data;
+	int			*lscale, *rscale;
+	unsigned char		*sfx;
+	int			i;
+	portable_samplepair_t	*lbuffer = paintbuffer;
 
 	if (ch->leftvol > 255)
 		ch->leftvol = 255;
@@ -358,12 +380,15 @@ void SND_PaintChannelFrom8 (channel_t *ch, sfxcache_t *sc, int count)
 	lscale = snd_scaletable[ch->leftvol >> 3];
 	rscale = snd_scaletable[ch->rightvol >> 3];
 	sfx = (signed char *)sc->data + ch->pos;
+#ifdef SAMPLE_FIX
+	lbuffer = paintbuffer + offset;
+#endif
 
 	for (i=0 ; i<count ; i++)
 	{
 		data = sfx[i];
-		paintbuffer[i].left += lscale[data];
-		paintbuffer[i].right += rscale[data];
+		lbuffer[i].left += lscale[data];
+		lbuffer[i].right += rscale[data];
 	}
 	
 	ch->pos += count;
@@ -372,25 +397,33 @@ void SND_PaintChannelFrom8 (channel_t *ch, sfxcache_t *sc, int count)
 #endif	// !id386
 
 
-void SND_PaintChannelFrom16 (channel_t *ch, sfxcache_t *sc, int count)
+void SND_PaintChannelFrom16 (channel_t *ch, sfxcache_t *sc, int count
+#ifdef SAMPLE_FIX
+                                                                     , int offset
+#endif
+                                                                                 )
 {
 	int data;
 	int left, right;
 	int leftvol, rightvol;
 	signed short *sfx;
+	portable_samplepair_t *lbuffer = paintbuffer;
 	int	i;
 
 	leftvol = ch->leftvol;
 	rightvol = ch->rightvol;
 	sfx = (signed short *)sc->data + ch->pos;
+#ifdef SAMPLE_FIX
+	lbuffer = paintbuffer + offset;
+#endif
 
 	for (i=0 ; i<count ; i++)
 	{
 		data = sfx[i];
 		left = (data * leftvol) >> 8;
 		right = (data * rightvol) >> 8;
-		paintbuffer[i].left += left;
-		paintbuffer[i].right += right;
+		lbuffer[i].left += left;
+		lbuffer[i].right += right;
 	}
 
 	ch->pos += count;
