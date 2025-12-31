@@ -89,6 +89,9 @@ VID_Init
 */
 void    VID_Init (unsigned char *palette)
 {
+	int vgamodes = 0;
+	float wide = 0;
+
 	Cvar_RegisterVariable (&vid_mode);
 	Cvar_RegisterVariable (&vid_wait);
 	Cvar_RegisterVariable (&vid_nopageflip);
@@ -114,7 +117,27 @@ void    VID_Init (unsigned char *palette)
 // is important because mode 0 must always be VGA mode 0x13
 	if (!COM_CheckParm ("-stdvid"))
 		VID_InitExtra ();
+	vgamodes = numvidmodes;
 	VGA_Init ();
+	vgamodes = numvidmodes - vgamodes;
+	if (COM_CheckParm ("+wide16x9") || COM_CheckParm ("+widescreen"))
+		wide=9.0;
+	else if (COM_CheckParm ("+wide16x10"))
+		wide=10.0;
+	if (wide > 0.0)
+	{
+		vmode_t	*pv = pvidmodes;
+		int i = vgamodes;
+		while (i--)
+		{
+			float devaspect = (float)pv->height / pv->width;
+			if (devaspect <= 0.7) 
+			{
+				pv->aspect = 1.0 / ((float) pv->width / 16.0 * wide / pv->height);
+			}
+			pv = pv->pnext;
+		}
+	}
 
 	vid_testingmode = 0;
 
